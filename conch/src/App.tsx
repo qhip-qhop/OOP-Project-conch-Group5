@@ -1,15 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
+
 import Navbar from './components/Navbar'
 import FilterGroup from './components/FilterGroup'
 import HeroInput from './components/HeroInput'
 import QuestionCard from './components/QuestionCard'
 import LoadingCard from './components/LoadingCard'
+
 import lightModeSound from './assets/sfx/lightmodereal.wav'
 import darkModeSound from './assets/sfx/darkmodereal.wav'
+
 import { generateQuiz, type QuizQuestion } from './services/gemini'
 
 type Theme = 'light' | 'dark'
-type FetchPhase = 'idle' | 'fetching' | 'done' 
+
+type FetchPhase = 'idle' | 'fetching' | 'done'
 
 const getInitialTheme = (): Theme => {
   if (typeof window === 'undefined') {
@@ -25,22 +29,29 @@ const getInitialTheme = (): Theme => {
 
 export default function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
-
   const [difficulty, setDifficulty] = useState('easy')
   const [mode, setMode] = useState('all')
   const [questioncount, setQuestioncount] = useState('5')
+
   const [questions, setQuestions] = useState<QuizQuestion[]>([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [loading, setLoading] = useState(false)
+
   const [topic, setTopic] = useState('')
+  const [files, setFiles] = useState<File[]>([])
+
   const [answers, setAnswers] = useState<Record<number, string>>({})
+
   const [fetchPhase, setFetchPhase] = useState<FetchPhase>('idle')
   const [showQuestions, setShowQuestions] = useState(false)
 
   const transitionTimers = useRef<number[]>([])
 
   const clearTransitionTimers = () => {
-    transitionTimers.current.forEach((timer) => window.clearTimeout(timer))
+    transitionTimers.current.forEach((timer) => {
+      window.clearTimeout(timer)
+    })
+
     transitionTimers.current = []
   }
 
@@ -67,53 +78,63 @@ export default function App() {
     }
   }
 
-const handleGenerate = async () => {
-  clearTransitionTimers()
+  const handleGenerate = async () => {
+    clearTransitionTimers()
 
-  setLoading(true)
-  setShowQuestions(false)
-  setFetchPhase('fetching')
-
-  const fetchStart = performance.now()
-
-  try {
-    console.log('waiting for response')
-
-    const data = await generateQuiz(topic, mode, 5, 'hard')
-
-    console.log(data)
-
-    setQuestions(data)
-    setAnswers({})
-    setCurrentIndex(0)
-
-    // Fetching must stay on screen for at least 5 seconds.
-    const elapsed = performance.now() - fetchStart
-    const remaining = Math.max(0, 5000 - elapsed)
-
-    const doneTimer = window.setTimeout(() => {
-      setFetchPhase('done')
-
-      // Give "Done!" a moment to be visible,
-      // then let LoadingCard's 1s fade-out finish.
-      const exitTimer = window.setTimeout(() => {
-        setShowQuestions(true)
-        setLoading(false)
-        setFetchPhase('idle')
-      }, 1000)
-
-      transitionTimers.current.push(exitTimer)
-    }, remaining)
-
-    transitionTimers.current.push(doneTimer)
-  } catch (err) {
-    console.error('Quiz generation failed: ', err)
-
-    setFetchPhase('idle')
-    setLoading(false)
+    setLoading(true)
     setShowQuestions(false)
+    setFetchPhase('fetching')
+
+    const fetchStart = performance.now()
+
+    try {
+      console.log('Generating quiz...')
+
+      const data = await generateQuiz(
+        topic,
+        Number(questioncount),
+        difficulty,
+        mode,
+        files
+      )
+
+      console.log(data)
+
+      setQuestions(data)
+      setAnswers({})
+      setCurrentIndex(0)
+
+      const elapsed = performance.now() - fetchStart
+      const remaining = Math.max(0, 5000 - elapsed)
+
+      const doneTimer = window.setTimeout(() => {
+        setFetchPhase('done')
+
+        const exitTimer = window.setTimeout(() => {
+          setShowQuestions(true)
+          setLoading(false)
+          setFetchPhase('idle')
+        }, 1000)
+
+        transitionTimers.current.push(exitTimer)
+      }, remaining)
+
+      transitionTimers.current.push(doneTimer)
+    } catch (err) {
+        console.error('Quiz generation failed:', err)
+
+        const message =
+          err instanceof Error
+            ? err.message
+            : String(err)
+
+        alert(message)
+
+        setFetchPhase('idle')
+        setLoading(false)
+        setShowQuestions(false)
+      }
   }
-}
 
   const currentQuestion = questions[currentIndex]
 
@@ -121,7 +142,12 @@ const handleGenerate = async () => {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme)
-    document.documentElement.classList.toggle('dark', theme === 'dark')
+
+    document.documentElement.classList.toggle(
+      'dark',
+      theme === 'dark'
+    )
+
     localStorage.setItem('theme', theme)
   }, [theme])
 
@@ -139,7 +165,9 @@ const handleGenerate = async () => {
 
     return () => {
       if (soundsRef.current) {
-        Object.values(soundsRef.current).forEach((audio) => audio.pause())
+        Object.values(soundsRef.current).forEach((audio) => {
+          audio.pause()
+        })
       }
     }
   }, [])
@@ -157,7 +185,8 @@ const handleGenerate = async () => {
   }
 
   const toggleTheme = () => {
-    const nextTheme: Theme = theme === 'light' ? 'dark' : 'light'
+    const nextTheme: Theme =
+      theme === 'light' ? 'dark' : 'light'
 
     setTheme(nextTheme)
     playThemeSound(nextTheme)
@@ -175,23 +204,49 @@ const handleGenerate = async () => {
           <FilterGroup
             label="difficulty"
             options={['easy', 'normal', 'hard']}
-            icons={['child_care', 'school', 'history_edu']}
+            icons={[
+              'child_care',
+              'school',
+              'history_edu',
+            ]}
             selected={difficulty}
             onSelect={setDifficulty}
           />
 
           <FilterGroup
             label="mode"
-            options={['all', 'mc', 'true/false', 'checkbox', 'fill-in']}
-            icons={['apps', 'list_alt', 'flaky', 'check_box', 'keyboard']}
+            options={[
+              'all',
+              'mc',
+              'true/false',
+              'checkbox',
+              'fill-in',
+            ]}
+            icons={[
+              'apps',
+              'list_alt',
+              'flaky',
+              'check_box',
+              'keyboard',
+            ]}
             selected={mode}
             onSelect={setMode}
           />
 
           <FilterGroup
             label="questions"
-            options={['5', '10', '20', 'custom']}
-            icons={['', '', '', 'tune']}
+            options={[
+              '5',
+              '10',
+              '20',
+              'custom',
+            ]}
+            icons={[
+              '',
+              '',
+              '',
+              'tune',
+            ]}
             selected={questioncount}
             onSelect={setQuestioncount}
           />
@@ -213,7 +268,9 @@ const handleGenerate = async () => {
                 onNext={handleNext}
                 onPrev={handlePrev}
                 isFirstQuestion={currentIndex === 0}
-                isLastQuestion={currentIndex === questions.length - 1}
+                isLastQuestion={
+                  currentIndex === questions.length - 1
+                }
               />
             </div>
           )}
@@ -227,6 +284,8 @@ const handleGenerate = async () => {
                 onChange={setTopic}
                 onSubmit={handleGenerate}
                 disabled={loading}
+                files={files}
+                onFilesChange={setFiles}
               />
             )}
         </div>
