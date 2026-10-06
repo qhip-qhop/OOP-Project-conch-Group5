@@ -6,7 +6,6 @@ import HistoryPage from './pages/HistoryPage'
 import SettingsPage from './pages/SettingsPage'
 
 export default function App() {
-  // Your theme state & toggle logic stays here so Navbar can use it
   const [theme, setTheme] = useState<'light' | 'dark'>('dark')
 
   const toggleTheme = () => {
