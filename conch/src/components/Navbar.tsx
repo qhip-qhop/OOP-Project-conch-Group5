@@ -6,36 +6,35 @@ interface NavbarProps {
 }
 
 const nav_items = [
-  { 
+  {
     path: '/settings',
-    label: 'settings',
-    icon: 'settings'
+    icon: 'settings',
   },
   {
     path: '/history',
-    label: 'history',
-    icon: 'history'
+    icon: 'history',
   },
   {
     path: '/',
-    label: 'quiz',
-    icon: 'terminal'
+    icon: 'terminal',
   },
 ]
 
-
-
 export default function Navbar({
-theme,
-onToggleTheme,
+  theme,
+  onToggleTheme,
 }: NavbarProps) {
   const { pathname } = useLocation()
   const navigate = useNavigate()
+
   return (
-    <header className="flex items-center justify-between">
-      <div className="flex gap-8 flex-row text-5xl font-mono font-bold  tracking-tighter text-light-text dark:text-dark-text">
+    <header className="flex items-center justify-between pb-4 pt-2">
+
+      <div className="flex flex-row gap-8 text-5xl font-mono font-bold tracking-tighter text-light-text dark:text-dark-text">
+
         conch
-        <div className="flex flex-row justify-center items-center gap-8 *:hover:cursor-pointer text-light-text/50 dark:text-dark-text/50">
+
+        <div className="flex flex-row items-center justify-center gap-8">
           {nav_items.map((item) => {
             const isActive = pathname === item.path
 
@@ -43,10 +42,10 @@ onToggleTheme,
               <button
                 key={item.path}
                 onClick={() => navigate(item.path)}
-                className={`material-symbols-outlined h-fit transition-colors ${
+                className={`material-symbols-outlined h-fit cursor-pointer transition-all hover:scale-110 ${
                   isActive
-                    ? 'text-dark-text  '
-                    : 'text-dark-text/40'
+                    ? 'text-light-text dark:text-dark-text'
+                    : 'text-light-text/40 dark:text-dark-text/40'
                 }`}
               >
                 {item.icon}
@@ -54,19 +53,20 @@ onToggleTheme,
             )
           })}
         </div>
+
       </div>
 
-      
-      <div className="flex flex-row gap-8">
-        <button
-          type="button"
-          onMouseDown={(event) => event.preventDefault()}
-          onClick={onToggleTheme}
-          className="material-symbols-outlined cursor-pointer text-light-text/40 dark:text-dark-text/40"
-          aria-label="Toggle theme">
-            {theme === 'light' ? 'light_mode' : 'dark_mode'}
-        </button>
-      </div>
+      <button
+        type="button"
+        onMouseDown={(event) => event.preventDefault()}
+        onClick={onToggleTheme}
+        className="flex cursor-pointer hover:scale-110 transition-transform duration-200 text-light-text dark:text-dark-text"
+      >
+        <span className="material-symbols-outlined text-2xl">
+          {theme === 'light' ? 'light_mode' : 'dark_mode'}
+        </span>
+      </button>
+
     </header>
   )
 }
