@@ -72,6 +72,11 @@ export default function QuizPage() {
     }
   })
 
+  const [isAnswering, setIsAnswering] = useState(() => {
+    const saved = localStorage.getItem('is_answering')
+    return saved ? JSON.parse(saved) : false
+  })
+
   const transitionTimers = useRef<number[]>([])
 
   useEffect(() => {
@@ -89,6 +94,10 @@ export default function QuizPage() {
   useEffect(() => {
     localStorage.setItem('quiz_topic', topic)
   }, [topic])
+
+  useEffect(() => {
+    localStorage.setItem('is_answering', JSON.stringify(isAnswering))
+  }, [isAnswering])
 
   const clearTransitionTimers = () => {
     transitionTimers.current.forEach((timer) => window.clearTimeout(timer))
@@ -121,6 +130,7 @@ export default function QuizPage() {
   const handleGenerate = async () => {
     clearTransitionTimers()
 
+    setIsAnswering(true)
     setLoading(true)
     setShowQuestions(false)
     setFetchPhase('fetching')
@@ -197,31 +207,40 @@ export default function QuizPage() {
   return (
     <div className="w-full">
       {/* navbar only visible when not in active quiz */}
-      {!showQuestions && (
-        <div className="flex justify-center gap-8 flex-wrap">
-          <FilterGroup
-            label="difficulty"
-            options={['easy', 'normal', 'hard']}
-            icons={['child_care', 'school', 'history_edu']}
-            selected={difficulty}
-            onSelect={setDifficulty}
-          />
+      
+      <div className="flex justify-center gap-8 flex-wrap">
+        <FilterGroup
+          label="difficulty"
+          options={['easy', 'normal', 'hard']}
+          icons={['child_care', 'school', 'history_edu']}
+          selected={difficulty}
+          onSelect={setDifficulty}
+        />
 
-          <FilterGroup
-            label="mode"
-            options={['all', 'mc', 'true/false', 'checkbox', 'fill-in']}
-            icons={['apps', 'list_alt', 'flaky', 'check_box', 'keyboard']}
-            selected={mode}
-            onSelect={setMode}
-          />
+        <FilterGroup
+          label="mode"
+          options={['all', 'mc', 'true/false', 'checkbox', 'fill-in']}
+          icons={['apps', 'list_alt', 'flaky', 'check_box', 'keyboard']}
+          selected={mode}
+          onSelect={setMode}
+        />
 
-          <FilterGroup
-            label="questions"
-            options={['5', '10', '20', 'custom']}
-            icons={['', '', '', 'tune']}
-            selected={questioncount}
-            onSelect={setQuestioncount}
-          />
+        <FilterGroup
+          label="questions"
+          options={['5', '10', '20', 'custom']}
+          icons={['', '', '', 'tune']}
+          selected={questioncount}
+          onSelect={setQuestioncount}
+        />
+      </div>
+
+      {showQuestions && currentQuestion && isAnswering && (
+        <div className="flex flex-row justify-end">
+          <button className="material-symbols-outlined text-3xl! cursor-pointer"
+          onClick={() => {setIsAnswering(false)
+            setTopic('')}}>
+            close
+          </button>
         </div>
       )}
 
@@ -230,7 +249,7 @@ export default function QuizPage() {
           <LoadingCard status={fetchPhase} />
         )}
 
-        {showQuestions && currentQuestion && (
+        {showQuestions && currentQuestion && isAnswering && (
           <div className="w-full flex flex-col items-center justify-center gap-4">
             <div className="lowercase text-light-text/60 dark:text-dark-text/60">
               {topic}
@@ -251,10 +270,7 @@ export default function QuizPage() {
           </div>
         )}
 
-        {!loading &&
-          fetchPhase === 'idle' &&
-          !showQuestions &&
-          !currentQuestion && (
+        {!loading && fetchPhase === 'idle' && !isAnswering && (
             <HeroInput
               value={topic}
               onChange={setTopic}

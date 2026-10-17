@@ -30,7 +30,7 @@ export default function HistoryPage() {
 				<div className="px-8 flex flex-col gap-2 justify-center items-center **:transition-all **:duration-100">
 					<div className="flex flex-row justify-between text-xl w-full font-bold">
 						<div className="flex items-center opacity-50">
-							Past Sessions: 0 Quizzes
+							Past Sessions: {filtered.length} Quizzes
 						</div>
 						<input type="text" placeholder="Search topic..." 
 							className="text-sm rounded-2xl bg-dark-bar p-2 px-4"

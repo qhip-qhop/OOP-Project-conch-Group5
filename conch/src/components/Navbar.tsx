@@ -29,11 +29,8 @@ export default function Navbar({
 
   return (
     <header className="flex items-center justify-between pb-4 pt-2">
-
       <div className="flex flex-row gap-8 text-5xl font-mono font-bold tracking-tighter text-light-text dark:text-dark-text">
-
         conch
-
         <div className="flex flex-row items-center justify-center gap-8">
           {nav_items.map((item) => {
             const isActive = pathname === item.path
@@ -53,9 +50,7 @@ export default function Navbar({
             )
           })}
         </div>
-
       </div>
-
       <button
         type="button"
         onMouseDown={(event) => event.preventDefault()}

@@ -112,7 +112,7 @@ export default function HeroInput({
   }
 
   return (
-    <section className="w-full max-w-175 flex flex-col items-center justify-center gap-5 pt-12">
+    <section className="w-full max-w-175 flex flex-col items-center justify-center gap-5">
       <h1 className="m-0 text-[clamp(2rem,2vw+1.2rem,3rem)] leading-tight text-light-text dark:text-dark-text text-center font-mono">
         What's today's topic?
       </h1>
