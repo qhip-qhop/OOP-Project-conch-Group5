@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router'
 import { type QuizSession } from './QuizPage'
 
 export default function HistoryPage() {
@@ -15,6 +16,14 @@ export default function HistoryPage() {
 			}
 		}
 	}, [])
+
+	const navigate = useNavigate()
+
+	const onSelectQuiz = (session: QuizSession) => {
+		localStorage.setItem('is_answering', 'true')
+
+		navigate('/', { state: { session }})
+	}
 
 	const filtered = history.filter((item) =>
 		item.topic.toLowerCase().includes(search.toLowerCase())
@@ -38,12 +47,11 @@ export default function HistoryPage() {
 					</div>
 					<div className="border flex p-4 flex-col w-full">
 						<div className="**: **:w-full flex w-full justify-evenly p-2 ">
-							<div className="flex-2">date</div>
+							<div className="flex-1">date</div>
 							<div className="flex-3">topic</div>
 							<div className="flex-1">mode</div>
 							<div className="flex-1">difficulty</div>
 							<div className="flex-1">score</div>
-							<div className="flex-1">action</div>
 						</div>
 						{filtered.length === 0 ? (
 							<div className="text-center py-8 text-sm opacity-40">
@@ -51,15 +59,14 @@ export default function HistoryPage() {
 							</div>
 						) : (
 							filtered.map((item) => (
-								<div className="
-								**:w-full **:opacity-50 transition-all
-								flex w-full justify-evenly p-2 hover:bg-dark-bar/30 duration-200 cursor-pointer rounded-2xl">
-									<div className="flex-2">{item.date}</div>
+								<div className="**:flex *:w-full **:opacity-50 transition-all flex w-full justify p-2 hover:bg-dark-bar/30 duration-200 cursor-pointer rounded-2xl"
+										onClick={() => onSelectQuiz(item)}
+										key={item.id}>
+									<div className="flex-1">{item.date}</div>
 									<div className="flex-3">{item.topic}</div>
 									<div className="flex-1">{item.mode}</div>
 									<div className="flex-1">{item.difficulty}</div>
 									<div className="flex-1">{item.score}/{item.totalQuestions}</div>
-									<div className="flex-1">?</div>
 								</div>
 							))
 						)}

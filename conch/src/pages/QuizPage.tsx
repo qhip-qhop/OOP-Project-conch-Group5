@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useLocation } from 'react-router'
 
 import FilterGroup from '../components/FilterGroup'
 import HeroInput from '../components/HeroInput'
@@ -77,7 +78,12 @@ export default function QuizPage() {
     return saved ? JSON.parse(saved) : false
   })
 
+  const [sessionId, setSessionId] = useState<string | null>(() => {
+    return localStorage.getItem('quiz_session_id')
+  })
+
   const transitionTimers = useRef<number[]>([])
+  const location = useLocation()
 
   useEffect(() => {
     localStorage.setItem('quiz_questions', JSON.stringify(questions))
@@ -98,6 +104,30 @@ export default function QuizPage() {
   useEffect(() => {
     localStorage.setItem('is_answering', JSON.stringify(isAnswering))
   }, [isAnswering])
+
+  useEffect(() => {
+    if (location.state?.session) {
+      const { session } = location.state as { session: QuizSession }
+
+      setQuestions(session.questions)
+      setAnswers(session.answers || {})
+      setCurrentIndex(0)
+      setSessionId(session.id)
+      localStorage.setItem('quiz_session_id', session.id)
+    }
+  }, [location.state])
+
+  useEffect(() => {
+    if (!sessionId) return
+    const raw = localStorage.getItem('quiz_history')
+    if (!raw) return
+
+    const history: QuizSession[] = JSON.parse(raw)
+    const updated = history.map((item) =>
+      item.id === sessionId ? { ...item, answers } : item
+    )
+    localStorage.setItem('quiz_history', JSON.stringify(updated))
+  }, [answers, sessionId])
 
   const clearTransitionTimers = () => {
     transitionTimers.current.forEach((timer) => window.clearTimeout(timer))
@@ -151,6 +181,7 @@ export default function QuizPage() {
       setQuestions(data.questions)
       setAnswers({})
       setCurrentIndex(0)
+      
 
       const newSession: QuizSession = {
         id: crypto.randomUUID(),
@@ -167,6 +198,9 @@ export default function QuizPage() {
         questions: data.questions,
         answers: {},
       }
+
+      setSessionId(newSession.id)
+      localStorage.setItem('quiz_session_id', newSession.id)
 
       try {
         const raw = localStorage.getItem('quiz_history')
