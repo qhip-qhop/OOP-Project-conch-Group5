@@ -41,7 +41,7 @@ const SETTINGS_LIST = [
 		},
 		{ 
 			key: 'suddenDeathMode',
-			label: 'default mode',
+			label: 'death mode',
 			options: ['off','on']
 		},
 		{
