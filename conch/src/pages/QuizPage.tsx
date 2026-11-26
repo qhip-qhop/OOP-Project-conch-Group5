@@ -25,10 +25,27 @@ export interface QuizSession {
   answers: Record<number, string>
 }
 
+const getSavedSettings = () => {
+  try {
+    const raw = localStorage.getItem('conch_settings')
+    return raw ? JSON.parse(raw) : {}
+  } catch {
+    return {}
+  }
+}
+
 export default function QuizPage() {
-  const [difficulty, setDifficulty] = useState('easy')
-  const [mode, setMode] = useState('all')
-  const [questioncount, setQuestioncount] = useState('5')
+  const savedSettings = getSavedSettings()
+
+  const [difficulty, setDifficulty] = useState(
+    () => savedSettings.defaultDifficulty || 'easy'
+  )
+  const [mode, setMode] = useState(
+    () => savedSettings.defaultMode || 'all'
+  )
+  const [questioncount, setQuestioncount] = useState(
+    () => savedSettings.defaultCount || '5'
+  )
 
   const [questions, setQuestions] = useState<QuizQuestion[]>(() => {
     const saved = localStorage.getItem('quiz_questions')
@@ -235,6 +252,22 @@ export default function QuizPage() {
     }
   }
 
+  
+  const handleCloseQuiz = () => {
+    const shouldConfirm = (getSavedSettings().confirmExit ?? 'on') === 'on'
+
+    if (shouldConfirm && !window.confirm('Close current quiz session?')) {
+      return
+    }
+
+    setIsAnswering(false)
+    setShowQuestions(false)
+    setQuestions([])
+    setAnswers({})
+    setCurrentIndex(0)
+    setTopic('')
+  }
+
   const currentQuestion = questions[currentIndex]
   const isLastQuestion = currentIndex === questions.length - 1
 
@@ -270,9 +303,10 @@ export default function QuizPage() {
 
       {showQuestions && currentQuestion && isAnswering && (
         <div className="flex flex-row justify-end">
-          <button className="material-symbols-outlined text-3xl! cursor-pointer"
-          onClick={() => {setIsAnswering(false)
-            setTopic('')}}>
+          <button
+            className="material-symbols-outlined text-3xl! cursor-pointer"
+            onClick={handleCloseQuiz}
+          >
             close
           </button>
         </div>

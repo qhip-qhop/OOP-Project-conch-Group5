@@ -2,37 +2,110 @@ import { useEffect, useState } from 'react'
 
 const SETTINGS_LIST = [
   {
-    title: 'General',
+    title: 'General (working)',
     items: [
-      { key: 'defaultDifficulty', label: 'default difficulty', options: ['easy', 'normal', 'hard'] },
-      { key: 'defaultMode', label: 'default mode', options: ['all', 'mc', 'true/false', 'checkbox', 'fill-in'] },
-      { key: 'defaultCount', label: 'default question count', options: ['5', '10', '20'] },
-      { key: 'confirmExit', label: 'confirm before closing quiz', options: ['on', 'off'] },
+		{ 
+			key: 'defaultDifficulty',
+			label: 'default difficulty',
+			options: ['easy', 'normal', 'hard']
+		},
+		{ 
+			key: 'defaultMode',
+			label: 'default mode',
+			options: ['all', 'mc', 'true/false', 'checkbox', 'fill-in']
+		},
+		{
+			key: 'defaultCount',
+			label: 'default question count',
+			options: ['5', '10', '20'] 
+		},
+		{
+			key: 'confirmExit',
+			label: 'confirm before closing quiz',
+			options: ['on', 'off']
+		},
+    ],
+  },
+    {
+    title: 'Mechanics (nope)',
+    items: [
+		{ 
+			key: 'questionTimer',
+			label: 'question timer',
+			options: ['off', '15s', '30s', '60', '90s', '120s']
+		},
+		{ 
+			key: 'suddenDeathMode',
+			label: 'default mode',
+			options: ['off','on']
+		},
+		{
+			key: 'backTracking',
+			label: 'back tracking',
+			options: ['on','off'] 
+		}
     ],
   },
   {
-    title: 'Appearance',
+    title: 'Appearance (nope)',
     items: [
-      { key: 'theme', label: 'theme mode', options: ['dark', 'light', 'system'] },
-      { key: 'palette', label: 'color palette', options: ['slate', 'emerald', 'amber'] },
-      { key: 'fontScale', label: 'font scale', options: ['compact', 'default', 'large'] },
-      { key: 'showTopicHeader', label: 'show topic header', options: ['on', 'off'] },
+		{ 
+			key: 'theme',
+			label: 'theme mode',
+			options: ['dark', 'light', 'system']
+		},
+		{ 
+			key: 'palette',
+			label: 'color palette',
+			options: ['slate', 'emerald', 'amber']
+		},
+		{ 
+			key: 'fontScale',
+			label: 'font scale',
+			options: ['compact', 'default', 'large']
+		},
+		{ 
+			key: 'showTopicHeader',
+			label: 'show topic header',
+			options: ['on', 'off'] 
+		},
     ],
   },
   {
-    title: 'Audio & Accessibility',
+    title: 'Audio & Accessibility (nope)',
     items: [
-      { key: 'sfx', label: 'interface sfx', options: ['on', 'off'] },
-      { key: 'volume', label: 'volume', options: ['100%', '75%', '50%', '25%', '0%'] },
-      { key: 'motion', label: 'reduce motion', options: ['off', 'on'] },
+		{ 
+			key: 'sfx',
+			label: 'interface sfx',
+			options: ['on', 'off']
+		},
+		{ 
+			key: 'volume',
+			label: 'volume',
+			options: ['100%', '75%', '50%', '25%', '0%']
+		},
+		{ 
+			key: 'motion',
+			label: 'reduce motion',
+			options: ['off', 'on']
+		},
     ],
   },
   {
-    title: 'Controls',
+    title: 'Controls (nope)',
     items: [
-      { key: 'hotkeys', label: 'keyboard hotkeys', options: ['on', 'off'] },
-      { key: 'autoNext', label: 'auto-advance on select', options: ['off', 'on'] },
-      { key: 'instantReveal', label: 'instant answer feedback', options: ['off', 'on'] },
+		{ key: 'hotkeys',
+			label: 'keyboard hotkeys',
+			options: ['on', 'off']
+		},
+		{ key: 'autoNext',
+			label: 'auto-advance on select',
+			options: ['off', 'on']
+		},
+		{ key: 'instantReveal',
+			label: 'instant answer feedback',
+			options: ['off', 'on']
+		},
     ],
   }
 ]
@@ -75,7 +148,7 @@ export default function SettingsPage() {
 			**:transition-all **:duration-150
 			[&_.setting-title]:text-xl [&_.setting-title]:w-full [&_.setting-title]:opacity-50 [&_.setting-title]:font-bold
 			[&_.setting-pill]:flex [&_.setting-pill]:mb-4 [&_.setting-pill]:flex-col [&_.setting-pill]:w-9/10
-			[&_.setting-row]:cursor-pointer [&_.setting-row]:p-2 [&_.setting-row]:px-8 [&_.setting-row]:rounded-2xl [&_.setting-row]:bg-transparent [&_.setting-row]:hover:bg-dark-bar/50 [&_.setting-row]:select-none
+			[&_.setting-row]:cursor-pointer [&_.setting-row]:p-2 [&_.setting-row]:px-8 [&_.setting-row]:rounded-2xl [&_.setting-row]:bg-transparent [&_.setting-row]:hover:bg-dark-bar/30 [&_.setting-row]:select-none
 			[&_.setting-mode]:flex [&_.setting-mode]:flex-3
 			[&_.setting-data]:flex [&_.setting-data]:flex-5 [&_.setting-data]:justify-end [&_.setting-data]:opacity-50
 			"
