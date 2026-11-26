@@ -13,6 +13,7 @@ interface QuestionCardProps {
   selectedChoice?: string
   onSelectChoice: (choice: string) => void
   onNext: () => void
+  onFinish: () => void
   onPrev: () => void
   isFirstQuestion: boolean
   isLastQuestion: boolean
@@ -33,6 +34,7 @@ export default function QuestionCard({
   selectedChoice = '',
   onSelectChoice,
   onNext,
+  onFinish,
   onPrev,
   isFirstQuestion,
   isLastQuestion,
@@ -194,15 +196,10 @@ export default function QuestionCard({
 
           <button
             type="button"
-            disabled={isLastQuestion}
-            onClick={onNext}
-            className={`px-4 py-2 rounded-xl bg-light-text dark:bg-dark-text text-light-bg dark:text-dark-bg font-bold ${
-              isLastQuestion
-                ? 'opacity-30 cursor-not-allowed'
-                : 'cursor-pointer hover:opacity-90'
-            }`}
+            onClick={isLastQuestion ? onFinish : onNext}
+            className="px-4 py-2 rounded-xl bg-light-text dark:bg-dark-text text-light-bg dark:text-dark-bg font-bold cursor-pointer hover:opacity-90"
           >
-            Next
+            {isLastQuestion ? 'Finish' : 'Next'}
           </button>
         </div>
       </div>
