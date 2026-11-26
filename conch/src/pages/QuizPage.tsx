@@ -5,11 +5,13 @@ import FilterGroup from '../components/FilterGroup'
 import HeroInput from '../components/HeroInput'
 import QuestionCard from '../components/QuestionCard'
 import LoadingCard from '../components/LoadingCard'
+import ScoreCard from '../components/ScoreCard'
 
 import {
   generateQuiz,
   type QuizQuestion,
 } from '../services/gemini'
+import { getScore } from '../components/Scoring'
 
 type FetchPhase = 'idle' | 'fetching' | 'done'
 
@@ -31,6 +33,15 @@ const getSavedSettings = () => {
     return raw ? JSON.parse(raw) : {}
   } catch {
     return {}
+  }
+}
+
+function readStored<T>(key: string, fallback: T): T {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? (JSON.parse(raw) as T) : fallback
+  } catch {
+    return fallback
   }
 }
 
@@ -95,11 +106,19 @@ export default function QuizPage() {
     return saved ? JSON.parse(saved) : false
   })
 
+  const [isFinished, setIsFinished] = useState<boolean>(() =>
+    readStored<boolean>('quiz_finished', false)
+  )
+  const [timings, setTimings] = useState<Record<number, number>>(() =>
+    readStored<Record<number, number>>('quiz_timings', {})
+  )
+
   const [sessionId, setSessionId] = useState<string | null>(() => {
     return localStorage.getItem('quiz_session_id')
   })
 
   const transitionTimers = useRef<number[]>([])
+  const questionStartedAt = useRef(Date.now())
   const location = useLocation()
 
   useEffect(() => {
@@ -123,6 +142,14 @@ export default function QuizPage() {
   }, [isAnswering])
 
   useEffect(() => {
+    localStorage.setItem('quiz_finished', JSON.stringify(isFinished))
+  }, [isFinished])
+
+  useEffect(() => {
+    localStorage.setItem('quiz_timings', JSON.stringify(timings))
+  }, [timings])
+
+  useEffect(() => {
     if (location.state?.session) {
       const { session } = location.state as { session: QuizSession }
 
@@ -130,6 +157,10 @@ export default function QuizPage() {
       setAnswers(session.answers || {})
       setCurrentIndex(0)
       setSessionId(session.id)
+      setShowQuestions(true)
+      setIsFinished(false)
+      setTimings({})
+      questionStartedAt.current = Date.now()
       localStorage.setItem('quiz_session_id', session.id)
     }
   }, [location.state])
@@ -162,22 +193,83 @@ export default function QuizPage() {
     }))
   }
 
+  const goToQuestion = (index: number) => {
+    const now = Date.now()
+
+    setTimings((prev) => ({
+      ...prev,
+      [currentIndex]:
+        (prev[currentIndex] ?? 0) + (now - questionStartedAt.current),
+    }))
+    questionStartedAt.current = now
+    setCurrentIndex(index)
+  }
+
   const handleNext = () => {
     if (currentIndex < questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1)
+      goToQuestion(currentIndex + 1)
     }
   }
 
   const handlePrev = () => {
     if (currentIndex > 0) {
-      setCurrentIndex((prev) => prev - 1)
+      goToQuestion(currentIndex - 1)
     }
   }
 
-  const handleGenerate = async () => {
+  const handleFinish = () => {
+    const now = Date.now()
+    const finalTimings = {
+      ...timings,
+      [currentIndex]:
+        (timings[currentIndex] ?? 0) + (now - questionStartedAt.current),
+    }
+
+    setTimings(finalTimings)
+    setIsFinished(true)
+
+    const { correct } = getScore(questions, answers)
+
+    try {
+      const raw = localStorage.getItem('quiz_history')
+      const history: QuizSession[] = raw ? JSON.parse(raw) : []
+
+      localStorage.setItem(
+        'quiz_history',
+        JSON.stringify(
+          history.map((item) =>
+            item.id === sessionId
+              ? { ...item, score: correct, answers }
+              : item
+          )
+        )
+      )
+    } catch (e) {
+      console.error('Failed to save score to history:', e)
+    }
+  }
+
+  const handleRetake = () => {
+    setAnswers({})
+    setTimings({})
+    setCurrentIndex(0)
+    setIsFinished(false)
+    questionStartedAt.current = Date.now()
+  }
+
+    const handleGenerate = async () => {
+    const count = Number(questioncount)
+
+    if (!Number.isInteger(count) || count < 1 || count > 50) {
+      window.alert('Enter a question count between 1 and 50.')
+      return
+    }
+
     clearTransitionTimers()
 
     setIsAnswering(true)
+    setIsFinished(false)
+    setTimings({})
     setLoading(true)
     setShowQuestions(false)
     setFetchPhase('fetching')
@@ -187,18 +279,21 @@ export default function QuizPage() {
     try {
       const data = await generateQuiz(
         topic,
-        Number(questioncount),
+        count,
         difficulty,
         mode,
         files
       )
+
+      if (!data.questions || data.questions.length === 0) {
+        throw new Error('No questions were generated.')
+      }
 
       // Store generated topic and questions
       setTopic(data.topic)
       setQuestions(data.questions)
       setAnswers({})
       setCurrentIndex(0)
-      
 
       const newSession: QuizSession = {
         id: crypto.randomUUID(),
@@ -234,6 +329,7 @@ export default function QuizPage() {
         setFetchPhase('done')
 
         const exitTimer = window.setTimeout(() => {
+          questionStartedAt.current = Date.now()
           setShowQuestions(true)
           setLoading(false)
           setFetchPhase('idle')
@@ -243,16 +339,27 @@ export default function QuizPage() {
       }, remaining)
 
       transitionTimers.current.push(doneTimer)
-      
+
     } catch (err) {
       console.error('Quiz generation failed:', err)
+      setIsAnswering(false)
       setFetchPhase('idle')
       setLoading(false)
       setShowQuestions(false)
     }
   }
 
-  
+  const resetQuiz = () => {
+    setIsAnswering(false)
+    setShowQuestions(false)
+    setIsFinished(false)
+    setQuestions([])
+    setAnswers({})
+    setTimings({})
+    setCurrentIndex(0)
+    setTopic('')
+  }
+
   const handleCloseQuiz = () => {
     const shouldConfirm = (getSavedSettings().confirmExit ?? 'on') === 'on'
 
@@ -260,12 +367,7 @@ export default function QuizPage() {
       return
     }
 
-    setIsAnswering(false)
-    setShowQuestions(false)
-    setQuestions([])
-    setAnswers({})
-    setCurrentIndex(0)
-    setTopic('')
+    resetQuiz()
   }
 
   const currentQuestion = questions[currentIndex]
@@ -274,7 +376,7 @@ export default function QuizPage() {
   return (
     <div className="w-full">
       {/* navbar only visible when not in active quiz */}
-      
+
       <div className="flex justify-center gap-8 flex-wrap">
         <FilterGroup
           label="difficulty"
@@ -301,7 +403,7 @@ export default function QuizPage() {
         />
       </div>
 
-      {showQuestions && currentQuestion && isAnswering && (
+      {showQuestions && currentQuestion && isAnswering && !isFinished && (
         <div className="flex flex-row justify-end">
           <button
             className="material-symbols-outlined text-3xl! cursor-pointer"
@@ -317,7 +419,7 @@ export default function QuizPage() {
           <LoadingCard status={fetchPhase} />
         )}
 
-        {showQuestions && currentQuestion && isAnswering && (
+        {showQuestions && currentQuestion && isAnswering && !isFinished && (
           <div className="w-full flex flex-col items-center justify-center gap-4">
             <div className="lowercase text-light-text/60 dark:text-dark-text/60">
               {topic}
@@ -332,22 +434,35 @@ export default function QuizPage() {
               onSelectChoice={handleSelectChoice}
               onNext={handleNext}
               onPrev={handlePrev}
+              onFinish={handleFinish}
               isFirstQuestion={currentIndex === 0}
               isLastQuestion={isLastQuestion}
             />
           </div>
         )}
 
+        {showQuestions && currentQuestion && isAnswering && isFinished && (
+          <ScoreCard
+            topic={topic}
+            questions={questions}
+            answers={answers}
+            timings={timings}
+            revealAnswers={getSavedSettings().revealAnswers === 'on'}
+            onRetake={handleRetake}
+            onNewQuiz={resetQuiz}
+          />
+        )}
+
         {!loading && fetchPhase === 'idle' && !isAnswering && (
-            <HeroInput
-              value={topic}
-              onChange={setTopic}
-              onSubmit={handleGenerate}
-              disabled={loading}
-              files={files}
-              onFilesChange={setFiles}
-            />
-          )}
+          <HeroInput
+            value={topic}
+            onChange={setTopic}
+            onSubmit={handleGenerate}
+            disabled={loading}
+            files={files}
+            onFilesChange={setFiles}
+          />
+        )}
       </div>
     </div>
   )

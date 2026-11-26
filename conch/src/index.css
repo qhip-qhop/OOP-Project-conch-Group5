@@ -12,6 +12,8 @@
   --color-dark-bg: #0d151c;
   --color-dark-bar: #233443;
   --color-dark-text: #8fb2cb;
+   --color-correct: oklch(0.64 0.14 155);
+  --color-incorrect: oklch(0.62 0.18 25);
 
 }
 

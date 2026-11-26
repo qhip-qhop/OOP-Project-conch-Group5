@@ -24,6 +24,11 @@ const SETTINGS_LIST = [
 			label: 'confirm before closing quiz',
 			options: ['on', 'off']
 		},
+		{
+			key: 'revealAnswers',
+			label: 'reveal questions on summary',
+			options: ['off', 'on']
+		},
     ],
   },
     {
