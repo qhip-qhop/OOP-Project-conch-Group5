@@ -11,7 +11,7 @@ import {
   generateQuiz,
   type QuizQuestion,
 } from '../services/gemini'
-import { getScore } from '../components/Scoring'
+import { getScore, isCorrect } from '../components/Scoring'
 
 type FetchPhase = 'idle' | 'fetching' | 'done'
 
@@ -58,6 +58,14 @@ export default function QuizPage() {
     () => savedSettings.defaultCount || '5'
   )
 
+  const timerLimit =
+  savedSettings.questionTimer && savedSettings.questionTimer !== 'off'
+    ? parseInt(savedSettings.questionTimer, 10)
+    : 0
+  const isDeathMode = savedSettings.perfectMode === 'on'
+  const allowBackTracking = (savedSettings.backTracking ?? 'on') === 'on'
+
+  const [remainingTimes, setRemainingTimes] = useState<Record<number, number>>({})
   const [questions, setQuestions] = useState<QuizQuestion[]>(() => {
     const saved = localStorage.getItem('quiz_questions')
     if (!saved) return []
@@ -183,6 +191,41 @@ export default function QuizPage() {
   }
 
   useEffect(() => {
+    if (!timerLimit || !showQuestions || !isAnswering || isFinished) return
+
+    setRemainingTimes((prev) =>
+      prev[currentIndex] !== undefined
+        ? prev
+        : { ...prev, [currentIndex]: timerLimit }
+    )
+  }, [currentIndex, timerLimit, showQuestions, isAnswering, isFinished])
+
+
+  const currentRemaining = remainingTimes[currentIndex] ?? timerLimit
+
+  useEffect(() => {
+    if (!timerLimit || !showQuestions || !isAnswering || isFinished) return
+
+    if (currentRemaining <= 0) {
+      if (currentIndex < questions.length - 1) {
+        goToQuestion(currentIndex + 1)
+      } else {
+        handleFinish()
+      }
+      return
+    }
+
+    const interval = window.setInterval(() => {
+      setRemainingTimes((prev) => ({
+        ...prev,
+        [currentIndex]: Math.max(0, (prev[currentIndex] ?? timerLimit) - 1),
+      }))
+    }, 1000)
+
+    return () => window.clearInterval(interval)
+  }, [currentRemaining, timerLimit, showQuestions, isAnswering, isFinished, currentIndex, questions.length])
+  
+  useEffect(() => {
     return () => clearTransitionTimers()
   }, [])
 
@@ -206,12 +249,22 @@ export default function QuizPage() {
   }
 
   const handleNext = () => {
+    if (isDeathMode) {
+      const currentQ = questions[currentIndex]
+      const givenAnswer = answers[currentIndex]
+      if (!isCorrect(currentQ, givenAnswer)) {
+        handleFinish()
+        return
+      }
+    }
+
     if (currentIndex < questions.length - 1) {
       goToQuestion(currentIndex + 1)
     }
   }
 
   const handlePrev = () => {
+    if (!allowBackTracking) return
     if (currentIndex > 0) {
       goToQuestion(currentIndex - 1)
     }
@@ -424,6 +477,14 @@ export default function QuizPage() {
               {topic}
             </div>
 
+            <div className="flex items-center gap-4 text-light-text/60 dark:text-dark-text/60">
+              {timerLimit > 0 && (
+                <span className={`font-mono font-bold ${currentRemaining <= 5 ? 'text-incorrect' : ''}`}>
+                  {currentRemaining}s
+                </span>
+              )}
+            </div>
+
             <QuestionCard
               id={currentQuestion.id}
               type={currentQuestion.type}
@@ -434,7 +495,7 @@ export default function QuizPage() {
               onNext={handleNext}
               onPrev={handlePrev}
               onFinish={handleFinish}
-              isFirstQuestion={currentIndex === 0}
+              isFirstQuestion={currentIndex === 0 || !allowBackTracking}
               isLastQuestion={isLastQuestion}
             />
           </div>

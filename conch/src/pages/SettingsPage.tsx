@@ -40,8 +40,8 @@ const SETTINGS_LIST = [
 			options: ['off', '15s', '30s', '60s', '90s', '120s']
 		},
 		{ 
-			key: 'suddenDeathMode',
-			label: 'death mode',
+			key: 'perfectMode',
+			label: 'perfect mode',
 			options: ['off','on']
 		},
 		{
