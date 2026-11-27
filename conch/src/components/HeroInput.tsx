@@ -148,7 +148,6 @@ export default function HeroInput({
               spellCheck="false"
               className="w-full border-none bg-transparent text-light-text dark:text-dark-text text-lg leading-[1.4] px-1 py-2 outline-none font-mono transition-colors selection:bg-light-text selection:text-light-bg dark:selection:bg-dark-text dark:selection:text-dark-bg"
             />
-
             <div className="absolute inset-0 pointer-events-none z-0">
               {deletedChars.map((item) => (
                 <div
@@ -170,6 +169,7 @@ export default function HeroInput({
             </div>
           </div>
         </div>
+        <div className='flex justify-center p-4 opacity-70'>Conch is AI and can make mistakes.</div>
       </form>
             {files.length > 0 && (
         <div className="w-full flex flex-wrap gap-2">

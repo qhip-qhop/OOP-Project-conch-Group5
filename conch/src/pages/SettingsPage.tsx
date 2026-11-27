@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 
 const SETTINGS_LIST = [
   {
-    title: 'General (working)',
+    title: 'General',
     items: [
 		{ 
 			key: 'defaultDifficulty',
@@ -32,12 +32,12 @@ const SETTINGS_LIST = [
     ],
   },
     {
-    title: 'Mechanics (nope)',
+    title: 'Mechanics',
     items: [
 		{ 
 			key: 'questionTimer',
 			label: 'question timer',
-			options: ['off', '15s', '30s', '60s', '90s', '120s']
+			options: ['off', '5', '10s', '30s', '60s', '90s', '120s']
 		},
 		{ 
 			key: 'perfectMode',
@@ -68,12 +68,7 @@ const SETTINGS_LIST = [
 			key: 'fontScale',
 			label: 'font scale',
 			options: ['compact', 'default', 'large']
-		},
-		{ 
-			key: 'showTopicHeader',
-			label: 'show topic header',
-			options: ['on', 'off'] 
-		},
+		}
     ],
   },
   {
