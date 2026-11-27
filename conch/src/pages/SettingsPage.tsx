@@ -27,7 +27,7 @@ const SETTINGS_LIST = [
 		{
 			key: 'revealAnswers',
 			label: 'reveal questions on summary',
-			options: ['off', 'on']
+			options: ['on', 'off']
 		},
     ],
   },
@@ -37,7 +37,7 @@ const SETTINGS_LIST = [
 		{ 
 			key: 'questionTimer',
 			label: 'question timer',
-			options: ['off', '15s', '30s', '60', '90s', '120s']
+			options: ['off', '15s', '30s', '60s', '90s', '120s']
 		},
 		{ 
 			key: 'suddenDeathMode',

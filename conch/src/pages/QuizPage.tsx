@@ -375,7 +375,6 @@ export default function QuizPage() {
 
   return (
     <div className="w-full">
-      {/* navbar only visible when not in active quiz */}
 
       <div className="flex justify-center gap-8 flex-wrap">
         <FilterGroup
