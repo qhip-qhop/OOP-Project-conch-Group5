@@ -17,6 +17,38 @@
 
 }
 
+html {
+  color-scheme: light;
+  --sb: #3d6073;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--sb) 35%, transparent) transparent;
+}
+
+html.dark {
+  color-scheme: dark;
+  --sb: #8fb2cb;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: color-mix(in srgb, var(--sb) 35%, transparent);
+  border: none;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--sb) 60%, transparent);
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @keyframes charDrop {

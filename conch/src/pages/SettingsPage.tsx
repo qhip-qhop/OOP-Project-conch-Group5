@@ -115,10 +115,17 @@ const SETTINGS_LIST = [
   }
 ]
 
+const DEFAULT_SETTINGS: Record<string, string> = Object.fromEntries(
+  SETTINGS_LIST.flatMap((section) => section.items).map((item) => [
+    item.key,
+    item.options[0],
+  ])
+)
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<Record<string, string>>(() => {
     const saved = localStorage.getItem('conch_settings')
-    return saved ? JSON.parse(saved) : {}
+    return { ...DEFAULT_SETTINGS, ...(saved ? JSON.parse(saved) : {}) }
   })
 
 	useEffect(() => {
@@ -127,12 +134,11 @@ export default function SettingsPage() {
 
 	const handleCycle = (key: string, options: string[]) => {
 		if (key === 'resetSettings') {
-			setSettings({})
-			localStorage.removeItem('conch_settings')
+			setSettings({ ...DEFAULT_SETTINGS })
 			return
 		}
 
-		const current = settings[key] || options[0]
+		const current = settings[key] ?? options[0]
 		const next = options[(options.indexOf(current) + 1) % options.length]
 		setSettings((prev) => ({ ...prev, [key]: next }))
 	}
@@ -171,7 +177,7 @@ export default function SettingsPage() {
 					>
 						<div className="setting-mode">{item.label}</div>
 						<div className="setting-data group-hover:opacity-100">
-						{settings[item.key] || item.options[0]}
+						{settings[item.key] ?? item.options[0]}
 						</div>
 					</div>
 					))}
